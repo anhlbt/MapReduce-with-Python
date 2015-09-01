@@ -8,8 +8,8 @@ Relational Join in the Simple Python MapReduce Framework
 mr = MapReduce.MapReduce()
 
 def mapper(record):
-    # key: document identifier
-    # value: document contents
+    # key: orderid/lineitemId
+    # value: order/lineitem content
     key = record[1]
     value = record
     mr.emit_intermediate(key, value)
