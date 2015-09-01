@@ -59,9 +59,7 @@ SELECT *
 FROM Orders, LineItem 
 WHERE Order.order_id = LineItem.order_id
 </pre>
-
 Your MapReduce query should produce the same result as this SQL query executed against an appropriate database. You can consider the two input tables, Order and LineItem, as one big concatenated bag of records that will be processed by the map function record by record.
-
 * <strong>Mapper input:</strong> Each input record is a list of strings representing a tuple in the database. Each list element corresponds to a different attribute of the table.
 * <strong>Reducer output:</strong> The output should be a joined record: a single list of length 27 that contains the attributes from the order record followed by the fields from the line item record. Each list element should be a string.
 
@@ -80,7 +78,6 @@ Your MapReduce query should produce the same result as this SQL query executed a
 # MapReduce unique trimmed
 
 * <strong>Problem:</strong> Consider a set of key-value pairs where each key is sequence id and each value is a string of nucleotides, e.g., GCTTCCGAAATGCTCGAA....
-
 Write a MapReduce query to remove the last 10 characters from each string of nucleotides, then remove any duplicates generated.
 * <strong>Mapper input:</strong> Each input record is a 2 element list [sequence id, nucleotides] where sequence id is a string representing a unique identifier for the sequence and nucleotides is a string representing a sequence of nucleotides.
 * <strong>Reducer output:</strong> The output from the reduce function should be the unique trimmed nucleotide strings.
@@ -89,6 +86,5 @@ Write a MapReduce query to remove the last 10 characters from each string of nuc
 
 * <strong>Problem:</strong> Assume you have two matrices A and B in a sparse matrix format, where each record is of the form i, j, value. Design a MapReduce algorithm to compute the matrix multiplication A x B.
 * <strong>Mapper input:</strong> The input to the map function will be a row of a matrix represented as a list. Each list will be of the form [matrix, i, j, value] where matrix is a string and i, j, and value are integers.
-
 The first item, matrix, is a string that identifies which matrix the record originates from. This field has two possible values: "a" indicates that the record is from matrix A and "b" indicates that the record is from matrix B.
 * <strong>Reducer output:</strong> The output from the reduce function will also be a row of the result matrix represented as a tuple. Each tuple will be of the form (i, j, value) where each element is an integer.
