@@ -44,3 +44,23 @@ In Part 3, the reducer function sums up the list of occurrence counts and emits 
 The list of occurrence counts is summed and a (word, total) tuple is emitted where word is a string and total is an integer.
 
 In Part 4, the code loads the json file and executes the MapReduce query which prints the result to stdout.
+
+# MapReduce Inverted index
+
+* <strong>Problem:</strong> Given a set of documents, an inverted index is a dictionary where each word is associated with a list of the document identifiers in which that word appears.
+* <strong>Mapper input:</strong> The input is a 2 element list: [document_id, text], where document_id is a string representing a document identifier and text is a string representing the text of the document. The document text may have words in upper or lower case and may contain punctuation. You should treat each token as if it was a valid word; that is, you can just use value.split() to tokenize the string.
+* <strong>Reducer output:</strong> The output should be a (word, document ID list) tuple where word is a String and document ID list is a list of Strings.
+
+# MapReduce relational join
+
+* <strong>Problem:</strong> Consider the following query
+<pre>
+SELECT * 
+FROM Orders, LineItem 
+WHERE Order.order_id = LineItem.order_id
+</pre>
+
+Your MapReduce query should produce the same result as this SQL query executed against an appropriate database. You can consider the two input tables, Order and LineItem, as one big concatenated bag of records that will be processed by the map function record by record.
+
+* <strong>Mapper input:</strong> Each input record is a list of strings representing a tuple in the database. Each list element corresponds to a different attribute of the table.
+* <strong>Reducer output:</strong> The output should be a joined record: a single list of length 27 that contains the attributes from the order record followed by the fields from the line item record. Each list element should be a string.
