@@ -94,3 +94,215 @@ Bài viết này giúp bạn làm quen với tư duy lập trình MapReduce. Ta 
 ```
 
 **Cài đặt:** wordcount.py
+
+# Tính Inverted index
+
+**Bài toán:** cho tập dữ liệu book.json, inverted index là một dictionary trong đó mỗi từ liên kết với danh sách các văn bản mà nó xuất hiện.
+
+**Map input:**
+
+```map (in_key, in_value) -> list(out_key, intermediate_value)```
+- in_key: “all”
+- in_value: “milton-paradise.txt” > “blake-poems.txt” > “melville-moby_dick.txt”
+- out_key: “all”
+- intermediate_value: [“milton-paradise.txt”, “blake-poems.txt”, “melville-moby_dick.txt”]
+
+**Reduce output (inverted_index.json):**
+
+```reduce (out_key, list(intermediate_value)) -> list(out_value)```
+- out_key: “all”
+- intermediate_value: [“milton-paradise.txt”, “blake-poems.txt”, “melville-moby_dick.txt”]
+- out_value: (“all”, [“milton-paradise.txt”, “blake-poems.txt”, “melville-moby_dick.txt”])
+
+```
+["all", ["milton-paradise.txt", "blake-poems.txt", "melville-moby_dick.txt"]]
+["Rossmore", ["edgeworth-parents.txt"]]
+["Consumptive", ["melville-moby_dick.txt"]]
+...
+```
+
+**Cài đặt:** inverted_index.py
+
+# Kết bảng thông tin đơn hàng
+
+**Bài toán:** cho tập dữ liệu records.json. Quan sát câu truy vấn SQL dưới đây
+
+```
+SELECT *
+FROM Orders, LineItem
+WHERE Order.order_id = LineItem.order_id
+```
+
+Chúng ta sẽ thiết kế giải thuật MapReduce sao cho có kết quả trả về tương tự như câu lệnh SQL trên.
+
+**Map input:**
+
+```map (in_key, in_value) -> list(out_key, intermediate_value)```
+- in_key: 32
+- in_value: [“order“, “32”, “130057”, “O”, “208660.75”, “1995-07-16”, “2-HIGH”, “Clerk#000000616”, “0”, “ise blithely bold, regular requests. quickly unusual dep”] >
+[“line_item“, “32”, “82704”, “7721”, “1”, “28”, “47227.60”, “0.05”, “0.08”, “N”, “O”, “1995-10-23”, “1995-08-27”, “1995-10-26”, “TAKE BACK RETURN”, “TRUCK”, “sleep quickly. req”] >
+[“line_item“, “32”, “197921”, “441”, “2”, “32”, “64605.44”, “0.02”, “0.00”, “N”, “O”, “1995-08-14”, “1995-10-07”, “1995-08-27”, “COLLECT COD”, “AIR”, “lithely regular deposits. fluffily “] >
+[“line_item“, “32”, “44161”, “6666”, “3”, “2”, “2210.32”, “0.09”, “0.02”, “N”, “O”, “1995-08-07”, “1995-10-07”, “1995-08-23”, “DELIVER IN PERSON”, “AIR”, ” express accounts wake according to the”]
+- out_key: 32
+- intermediate_value: [[“order“, “32”, “130057”, “O”, “208660.75”, “1995-07-16”, “2-HIGH”, “Clerk#000000616”, “0”, “ise blithely bold, regular requests. quickly unusual dep”] >
+[“line_item“, “32”, “82704”, “7721”, “1”, “28”, “47227.60”, “0.05”, “0.08”, “N”, “O”, “1995-10-23”, “1995-08-27”, “1995-10-26”, “TAKE BACK RETURN”, “TRUCK”, “sleep quickly. req”] >
+[“line_item“, “32”, “197921”, “441”, “2”, “32”, “64605.44”, “0.02”, “0.00”, “N”, “O”, “1995-08-14”, “1995-10-07”, “1995-08-27”, “COLLECT COD”, “AIR”, “lithely regular deposits. fluffily “] >
+[“line_item“, “32”, “44161”, “6666”, “3”, “2”, “2210.32”, “0.09”, “0.02”, “N”, “O”, “1995-08-07”, “1995-10-07”, “1995-08-23”, “DELIVER IN PERSON”, “AIR”, ” express accounts wake according to the”]
+]
+
+**Reduce output (join.json):**
+
+```reduce (out_key, list(intermediate_value)) -> list(out_value)```
+- out_key: 32
+- intermediate_value: [[“order“, “32”, “130057”, “O”, “208660.75”, “1995-07-16”, “2-HIGH”, “Clerk#000000616”, “0”, “ise blithely bold, regular requests. quickly unusual dep”] >
+[“line_item“, “32”, “82704”, “7721”, “1”, “28”, “47227.60”, “0.05”, “0.08”, “N”, “O”, “1995-10-23”, “1995-08-27”, “1995-10-26”, “TAKE BACK RETURN”, “TRUCK”, “sleep quickly. req”] >
+[“line_item“, “32”, “197921”, “441”, “2”, “32”, “64605.44”, “0.02”, “0.00”, “N”, “O”, “1995-08-14”, “1995-10-07”, “1995-08-27”, “COLLECT COD”, “AIR”, “lithely regular deposits. fluffily “] >
+[“line_item“, “32”, “44161”, “6666”, “3”, “2”, “2210.32”, “0.09”, “0.02”, “N”, “O”, “1995-08-07”, “1995-10-07”, “1995-08-23”, “DELIVER IN PERSON”, “AIR”, ” express accounts wake according to the”]
+]
+- out_value: [“order“, “32“, “130057”, “O”, “208660.75”, “1995-07-16”, “2-HIGH”, “Clerk#000000616”, “0”, “ise blithely bold, regular requests. quickly unusual dep”, “line_item“, “32“, “82704”, “7721”, “1”, “28”, “47227.60”, “0.05”, “0.08”, “N”, “O”, “1995-10-23”, “1995-08-27”, “1995-10-26”, “TAKE BACK RETURN”, “TRUCK”, “sleep quickly. req”]
+[“order“, “32“, “130057”, “O”, “208660.75”, “1995-07-16”, “2-HIGH”, “Clerk#000000616”, “0”, “ise blithely bold, regular requests. quickly unusual dep”, “line_item“, “32“, “197921”, “441”, “2”, “32”, “64605.44”, “0.02”, “0.00”, “N”, “O”, “1995-08-14”, “1995-10-07”, “1995-08-27”, “COLLECT COD”, “AIR”, “lithely regular deposits. fluffily “]
+[“order“, “32“, “130057”, “O”, “208660.75”, “1995-07-16”, “2-HIGH”, “Clerk#000000616”, “0”, “ise blithely bold, regular requests. quickly unusual dep”, “line_item“, “32“, “44161”, “6666”, “3”, “2”, “2210.32”, “0.09”, “0.02”, “N”, “O”, “1995-08-07”, “1995-10-07”, “1995-08-23”, “DELIVER IN PERSON”, “AIR”, ” express accounts wake according to the”]
+
+```
+["order", "32", "130057", "O", "208660.75", "1995-07-16", "2-HIGH", "Clerk#000000616", "0", "ise blithely bold, regular requests. quickly unusual dep", "line_item", "32", "82704", "7721", "1", "28", "47227.60", "0.05", "0.08", "N", "O", "1995-10-23", "1995-08-27", "1995-10-26", "TAKE BACK RETURN", "TRUCK", "sleep quickly. req"]
+["order", "32", "130057", "O", "208660.75", "1995-07-16", "2-HIGH", "Clerk#000000616", "0", "ise blithely bold, regular requests. quickly unusual dep", "line_item", "32", "197921", "441", "2", "32", "64605.44", "0.02", "0.00", "N", "O", "1995-08-14", "1995-10-07", "1995-08-27", "COLLECT COD", "AIR", "lithely regular deposits. fluffily "]
+["order", "32", "130057", "O", "208660.75", "1995-07-16", "2-HIGH", "Clerk#000000616", "0", "ise blithely bold, regular requests. quickly unusual dep", "line_item", "32", "44161", "6666", "3", "2", "2210.32", "0.09", "0.02", "N", "O", "1995-08-07", "1995-10-07", "1995-08-23", "DELIVER IN PERSON", "AIR", " express accounts wake according to the"]
+...
+```
+
+**Cài đặt:** join.py
+
+# Đếm số lượng bạn bè
+
+**Bài toán:** cho tập dữ liệu friends.json gồm các cặp giá trị key-value (person, friend) thể hiện mối quan hệ bạn bè giữa hai người. Ta sẽ thiết kế giải thuật MapReduce để đếm số lượng bạn bè của mỗi person trong tập dữ liệu.
+
+**Map input:**
+
+```map (in_key, in_value) -> list(out_key, intermediate_value)```
+- in_key: “MlleBaptistine”
+- in_value: 1 > 1 > 1
+- out_key: “MlleBaptistine”
+- intermediate_value: [1, 1, 1]
+
+**Reduce output (friend_count.json):**
+
+```reduce (out_key, list(intermediate_value)) -> list(out_value)```
+- out_key: “MlleBaptistine”
+- intermediate_value: [1, 1, 1]
+- out_value: (“MlleBaptistine”, 3)
+
+```
+["MlleBaptistine", 3]
+["Myriel", 5]
+["Valjean", 16]
+...
+```
+
+**Cài đặt:** friend_count.py
+
+# Liệt kê danh sách quan hệ bạn bè một chiều
+
+**Bài toán:** mối quan hệ “bạn bè” thường tồn tại hai chiều. Nghĩa là, nếu tôi là bạn của bạn thì bạn cũng là bạn của tôi. Tuy nhiên, tập dữ liệu ban đầu friends.json tồn tại một số quan hệ một chiều. Ta cần thiết kế giải thuật MapReduce để kiểm tra mối quan hệ này và xuất ra danh sách các mối quan hệ bạn bè một chiều.
+
+**Map input:**
+
+```map (in_key, in_value) -> list(out_key, intermediate_value)```
+- in_key: “MlleBaptistine”
+- in_value: “Valjean”
+- out_key: [“MlleBaptistine”, “Valjean”], [“Valjean”, “MlleBaptistine”]
+- intermediate_value: 1, 1
+
+**Reduce output (asymmetric_friendships.json):**
+
+```reduce (out_key, list(intermediate_value)) -> list(out_value)```
+- out_key: [“MlleBaptistine”, “Valjean”], [“Valjean”, “MlleBaptistine”]
+- intermediate_value: 1, 1
+- out_value: [“MlleBaptistine”, “Valjean”], [“Valjean”, “MlleBaptistine”]
+
+```
+["MlleBaptistine", "Valjean"]
+["Valjean", "MlleBaptistine"]
+["Fantine", "Valjean"]
+["Cosette", "Valjean"]
+...
+```
+
+**Cài đặt:** asymmetric_friendships.py
+
+# Rút gọn chuỗi DNA
+
+**Bài toán:** cho tập dữ liệu dna.json a gồm cặp giá trị key-value. Trong đó, key là sequence id, value là chuỗi nucleotides (GCTTCCGAAATGCTCGAA….). Ta thiết kết giải thuật MapReduce với điều kiện loại bỏ 10 kí tự cuối chuỗi và loại bỏ những chuỗi DNA trùng nhau.
+
+**Map input:**
+
+```map (in_key, in_value) -> list(out_key, intermediate_value)```
+- in_key: trimmed = record[1][:-10]
+- in_value: 0
+- out_key: trimmed
+- intermediate_value: (trimmed, 0)
+
+**Reduce output (unique_trims.json):**
+
+```reduce (out_key, list(intermediate_value)) -> list(out_value)```
+- out_key: trimmed
+- intermediate_value: (trimmed, 0)
+- out_value: trimmed
+
+```
+"CTGCAGCCACCCCCTGCTGCCCCCACCTGAACCCTTGATCCCAGCTCGGCAGCCCCCGCAGTTTCCTGTTTGCCCACTCTCTTTGCCCAGCCTCAGGAACAGAGCTGATCCTTGAACTCTAAGTTCCACATCGCCAGCAAAAGTAAGCAGTGGCAGGGCCAGGCTGAGCTTATCAGTCTCCCAAGTCC..."
+"CCATGGGTTGGCCAGCCTTGCCTTGACCAATAGCTTTGACAAGGCAACCTTGACCAATAGTCTTAGAGTATCGGGTGAGGCCCGGGGGCCGGTGGGTGGCTAGGGATGAAGAATAAAAGGAAGCACCCTCCATCAGTTCCACATACTCGCTCTGAAACGTCTGAGATTATCAATAAGCTCCTTGTCCAGACGCCA..."
+"GAATTCACAAGCCTTTTCTCTGAGAGAGGCCTTGGGACTAGGAACTTTTTGAATGAGTGTAGAAGTCGGGAAGGAGACAATAGTGTCAACTTGGGATTGCCTAAGGCAACAACAGAGCAAAACAAGAACGCTTTGGTTCTCTGGGTCTCTGTCCCTGATTGCATAGCGGGTCATTGTTGGGAAA..."
+...
+```
+
+**Cài đặt:** unique_trims.py
+
+# Nhân hai ma trận rời rạc
+
+**Bài toán:** giả sử ta có hai ma trận rời rạc A và B được lưu trong file matrix.json với mỗi dòng có dạng i, j, value. Ta cần thiết kết giải thuật MapReduce để nhân hai ma trận A x B.
+
+**Map input:**
+
+```map (in_key, in_value) -> list(out_key, intermediate_value)```
+- in_key: a
+- in_value: [“a”, 0, 0, 63] >
+[“a”, 0, 1, 45] >
+[“a”, 0, 2, 93] >
+[“a”, 0, 3, 32] >
+[“a”, 0, 4, 49]
+...
+- out_key: a
+- intermediate_value: [[“a”, 0, 0, 63],
+[“a”, 0, 1, 45],
+[“a”, 0, 2, 93],
+[“a”, 0, 3, 32],
+[“a”, 0, 4, 49],
+...
+]
+
+**Reduce output (multiply.json):**
+
+```reduce (out_key, list(intermediate_value)) -> list(out_value)```
+- out_key: a
+- intermediate_value: [[“a”, 0, 0, 63],
+[“a”, 0, 1, 45],
+[“a”, 0, 2, 93],
+[“a”, 0, 3, 32],
+[“a”, 0, 4, 49],
+...
+]
+- out_value: [0, 0, 11878]
+[0, 1, 14044]
+[0, 2, 16031]
+...
+
+```
+[0, 0, 11878]
+[0, 1, 14044]
+[0, 2, 16031]
+...
+```
+
+**Cài đặt:** multiply.py
+
+
